@@ -2,12 +2,19 @@ package shoppingcheck
 
 class ShoppingCart {
   type DiscountFunction = List[String] => Int
-  private val prices = Map("apple" -> 60, "orange" -> 25, "banana" -> 20)
+  private val prices = Map("apple" -> 60, "orange" -> 25, "banana" -> 20, "melon" -> 100)
 
-  def simpleTotalCents(ps: List[String]): Int = ps.map(price).sum
+  def totalCents(ps: List[String]): Int = {
+    val appleBananaPromo = discountNforM(Seq("apple", "banana"), 2, 1)
+    val orangePromo = discountNforM("orange", 3, 2)
+    val melonPromo = discountNforM("melon", 3, 2)
+    promoTotalCents(ps, Seq(appleBananaPromo, orangePromo, melonPromo))
+  }
 
   def promoTotalCents(ps: List[String], discounts: Seq[DiscountFunction]): Int =
     simpleTotalCents(ps: List[String]) - discounts.map(f => f(ps)).sum
+
+  def simpleTotalCents(ps: List[String]): Int = ps.map(price).sum
 
   def discountNforM(d: String, total: Int, pay: Int): DiscountFunction =
     discountNforM(Seq(d), total, pay)

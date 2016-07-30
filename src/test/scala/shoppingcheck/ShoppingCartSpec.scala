@@ -25,7 +25,26 @@ class ShoppingCartSpec extends BaseSpec {
 
       forAll(apples, oranges) { (as, os) =>
         val ps = shuffle(as ++ os)
-        sc.promoTotalCents(ps, promos) shouldBe (costOfApples(as) + costOfOranges(os) - applePromo(as) - orangePromo(os))
+        val expectedCost = costOfApples(as) + costOfOranges(os)
+        val expectedDiscount = applePromo(as) + orangePromo(os)
+
+        sc.promoTotalCents(ps, promos) shouldBe (expectedCost - expectedDiscount)
+      }
+    }
+  }
+
+  "totalCents" should {
+    "apply promotions for (apples + bananas), oranges, and melons" in {
+      val appleBananaPromo = sc.discountNforM(Seq(apple, banana), 2, 1)
+      val orangePromo = sc.discountNforM(orange, 3, 2)
+      val melonPromo = sc.discountNforM(melon, 3, 2)
+
+      forAll(apples, oranges, bananas, melons) { (as, os, bs, ms) =>
+        val ps = shuffle(as ++ os ++ bs ++ ms)
+        val expectedCost = costOfApples(as) + costOfBananas(bs) + costOfOranges(os) + costOfMelons(ms)
+        val expectedDiscount = appleBananaPromo(as ++ bs) + orangePromo(os) + melonPromo(ms)
+
+        sc.totalCents(ps) shouldBe (expectedCost - expectedDiscount)
       }
     }
   }
@@ -115,13 +134,16 @@ class ShoppingCartSpec extends BaseSpec {
 
   // Test Setup
   val sc = new ShoppingCart
+
   val (apple, applePrice) = ("apple", 60)
   val (orange, orangePrice) = ("orange", 25)
   val (banana, bananaPrice) = ("banana", 20)
+  val (melon, melonPrice) = ("melon", 100)
 
   val apples = listOf(delay(apple))
   val oranges = listOf(delay(orange))
   val bananas = listOf(delay(banana))
+  val melons = listOf(delay(melon))
 
   def costOfX(x: String, price: Int, ps: List[String]) = {
     require(ps.forall(_ == x), s"costOf${x.toLowerCase.capitalize} must contain only ${x}s")
@@ -130,4 +152,5 @@ class ShoppingCartSpec extends BaseSpec {
   def costOfApples(ps: List[String]) = costOfX(apple, applePrice, ps)
   def costOfOranges(ps: List[String]) = costOfX(orange, orangePrice, ps)
   def costOfBananas(ps: List[String]) = costOfX(banana, bananaPrice, ps)
+  def costOfMelons(ps: List[String]) = costOfX(melon, melonPrice, ps)
 }
