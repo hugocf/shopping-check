@@ -93,7 +93,7 @@ class ShoppingCartSpec extends BaseSpec {
         } yield (as, bs)
 
         forAll(lessCheaperProducts) { case (as, bs) =>
-          val expectedDiscount = costOfBananas(bs) + (as.length - bs.length) / 2 * 60
+          val expectedDiscount = costOfBananas(bs) + (as.length - bs.length) / 2 * applePrice
           sc.discountNforM(Seq(apple, banana), 2, 1)(as ++ bs) shouldBe expectedDiscount
         }
       }
@@ -106,7 +106,7 @@ class ShoppingCartSpec extends BaseSpec {
         } yield (as, bs)
 
         forAll(lessCheaperProducts) { case (as, bs) =>
-          val expectedDiscount = (as.length * 20) + (bs.length - as.length) / 2 * 20
+          val expectedDiscount = (as.length * bananaPrice) + (bs.length - as.length) / 2 * bananaPrice
           sc.discountNforM(Seq(apple, banana), 2, 1)(as ++ bs) shouldBe expectedDiscount
         }
       }
@@ -115,15 +115,19 @@ class ShoppingCartSpec extends BaseSpec {
 
   // Test Setup
   val sc = new ShoppingCart
-  val apple = "apple"
-  val orange = "orange"
-  val banana = "banana"
+  val (apple, applePrice) = ("apple", 60)
+  val (orange, orangePrice) = ("orange", 25)
+  val (banana, bananaPrice) = ("banana", 20)
 
   val apples = listOf(delay(apple))
   val oranges = listOf(delay(orange))
   val bananas = listOf(delay(banana))
 
-  def costOfApples(ps: List[String]) = ps.length * 60
-  def costOfOranges(ps: List[String]) = ps.length * 25
-  def costOfBananas(ps: List[String]) = ps.length * 20
+  def costOfX(x: String, price: Int, ps: List[String]) = {
+    require(ps.forall(_ == x), s"costOf${x.toLowerCase.capitalize} must contain only ${x}s")
+    ps.length * price
+  }
+  def costOfApples(ps: List[String]) = costOfX(apple, applePrice, ps)
+  def costOfOranges(ps: List[String]) = costOfX(orange, orangePrice, ps)
+  def costOfBananas(ps: List[String]) = costOfX(banana, bananaPrice, ps)
 }
