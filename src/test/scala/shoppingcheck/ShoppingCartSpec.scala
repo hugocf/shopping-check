@@ -19,11 +19,13 @@ class ShoppingCartSpec extends BaseSpec {
 
   "promoTotalCents" must {
     "apply discounts to the total value" in {
+      val applePromo = sc.discountNforM(apple, 2, 1)
+      val orangePromo = sc.discountNforM(orange, 3, 2)
+      val promos = Seq(applePromo, orangePromo)
+
       forAll(apples, oranges) { (as, os) =>
         val ps = shuffle(as ++ os)
-        sc.promoTotalCents(ps) shouldBe (priceOfApples(as) + priceOfOranges(os)
-                                         - sc.discountNforM(as, apple, 2, 1)
-                                         - sc.discountNforM(os, orange, 3, 2))
+        sc.promoTotalCents(ps, promos) shouldBe (priceOfApples(as) + priceOfOranges(os) - applePromo(as) - orangePromo(os))
       }
     }
   }
@@ -32,27 +34,27 @@ class ShoppingCartSpec extends BaseSpec {
     "return half of the prices sum total as discount for even length apples" in {
       val discountApples = (listOf(delay(apple)), "discounted")
       forAll(discountApples) { as =>
-        sc.discountNforM(as ++ as, apple, 2, 1) shouldBe priceOfApples(as)
+        sc.discountNforM(apple, 2, 1)(as ++ as) shouldBe priceOfApples(as)
       }
     }
 
     "not count the extra apple as discount for odd length apples" in {
       val discountApples = (listOf(delay(apple)), "discounted")
       forAll(discountApples) { as =>
-        sc.discountNforM(as ++ (as :+ apple), apple, 2, 1) shouldBe priceOfApples(as)
+        sc.discountNforM(apple, 2, 1)(as ++ (as :+ apple)) shouldBe priceOfApples(as)
       }
     }
 
     "not apply discounts to lists without the discounted items" in {
       forAll(oranges) { os =>
-        sc.discountNforM(os, apple, 2, 1) shouldBe 0
+        sc.discountNforM(apple, 2, 1)(os) shouldBe 0
       }
     }
 
     "offer 1 orange whenever 3 are bought" in {
       val discountOranges = (listOf(delay(orange)), "discounted")
       forAll(discountOranges) { os =>
-        sc.discountNforM(os ++ os ++ os, orange, 3, 2) shouldBe priceOfOranges(os)
+        sc.discountNforM(orange, 3, 2)(os ++ os ++ os) shouldBe priceOfOranges(os)
       }
     }
 
@@ -60,8 +62,8 @@ class ShoppingCartSpec extends BaseSpec {
       val discountOranges = (listOf(delay(orange)), "discounted")
       forAll(discountOranges) { os =>
         val oranges = os ++ os ++ os
-        sc.discountNforM(oranges :+ orange, orange, 3, 2) shouldBe priceOfOranges(os)
-        sc.discountNforM(oranges :+ orange :+ orange, orange, 3, 2) shouldBe priceOfOranges(os)
+        sc.discountNforM(orange, 3, 2)(oranges :+ orange) shouldBe priceOfOranges(os)
+        sc.discountNforM(orange, 3, 2)(oranges :+ orange :+ orange) shouldBe priceOfOranges(os)
       }
     }
   }
