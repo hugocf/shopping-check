@@ -1,11 +1,11 @@
 package shoppingcheck
 
 import org.scalacheck.Gen._
-import org.scalacheck.Shrink
+import org.scalacheck.{Gen, Shrink}
 
 import scala.util.Random._
 
-class ShoppingCartSpec extends BaseSpec {
+class ShoppingCartSpec extends BaseSpec with TestFixtures {
   implicit def noShrink[T]: Shrink[T] = Shrink.shrinkAny
 
   "simpleTotalCents" must {
@@ -131,8 +131,9 @@ class ShoppingCartSpec extends BaseSpec {
       }
     }
   }
+}
 
-  // Test Setup
+trait TestFixtures {
   val sc = new ShoppingCart
 
   val (apple, applePrice) = ("apple", 60)
@@ -140,17 +141,18 @@ class ShoppingCartSpec extends BaseSpec {
   val (banana, bananaPrice) = ("banana", 20)
   val (melon, melonPrice) = ("melon", 100)
 
-  val apples = listOf(const(apple))
-  val oranges = listOf(const(orange))
-  val bananas = listOf(const(banana))
-  val melons = listOf(const(melon))
+  val apples: Gen[List[String]] = listOf(const(apple))
+  val oranges: Gen[List[String]] = listOf(const(orange))
+  val bananas: Gen[List[String]] = listOf(const(banana))
+  val melons: Gen[List[String]] = listOf(const(melon))
 
-  def costOfX(x: String, price: Int, ps: List[String]) = {
+  def costOfApples(ps: List[String]): Int = costOfX(apple, applePrice, ps)
+  def costOfOranges(ps: List[String]): Int = costOfX(orange, orangePrice, ps)
+  def costOfBananas(ps: List[String]): Int = costOfX(banana, bananaPrice, ps)
+  def costOfMelons(ps: List[String]): Int = costOfX(melon, melonPrice, ps)
+
+  private def costOfX(x: String, price: Int, ps: List[String]) = {
     require(ps.forall(_ == x), s"costOf${x.toLowerCase.capitalize} must contain only ${x}s")
     ps.length * price
   }
-  def costOfApples(ps: List[String]) = costOfX(apple, applePrice, ps)
-  def costOfOranges(ps: List[String]) = costOfX(orange, orangePrice, ps)
-  def costOfBananas(ps: List[String]) = costOfX(banana, bananaPrice, ps)
-  def costOfMelons(ps: List[String]) = costOfX(melon, melonPrice, ps)
 }

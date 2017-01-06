@@ -3,6 +3,7 @@ package shoppingcheck
 class ShoppingCart {
   type DiscountFunction = List[String] => Int
   private val prices = Map("apple" -> 60, "orange" -> 25, "banana" -> 20, "melon" -> 100)
+  private def price(p: String) = prices.getOrElse(p, 0)
 
   def totalCents(ps: List[String]): Int = {
     val appleBananaPromo = discountNforM(Seq("apple", "banana"), 2, 1)
@@ -21,11 +22,8 @@ class ShoppingCart {
 
   def discountNforM(ds: Seq[String], total: Int, pay: Int): DiscountFunction =
     (ps) => {
-      val discountItems = ps.collect{ case p if ds.contains(p) => p }
+      val discountItems = ps.collect { case p if ds.contains(p) => p }
       val countFree = discountItems.length / total * (total - pay)
       discountItems.map(price).sorted.take(countFree).sum
     }
-
-  def price(p: String) = prices.getOrElse(p, 0)
-
 }
